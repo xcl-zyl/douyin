@@ -1,3 +1,8 @@
+/*
+定义数据类型：包括返回值，视频信息， 评论信息， 用户信息
+define data type: include Response, Video, Comment, User
+*/
+
 package controller
 
 type Response struct {

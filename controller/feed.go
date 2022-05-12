@@ -1,9 +1,15 @@
+/*
+打开软件获取视频流
+open program to get video data
+*/
+
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type FeedResponse struct {

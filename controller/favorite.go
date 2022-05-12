@@ -1,8 +1,14 @@
+/*
+点赞功能和用户个人信息获取点赞列表
+favoriteAction and get FavoriteList in User personal interface
+*/
+
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // FavoriteAction no practical effect, just check if token is valid

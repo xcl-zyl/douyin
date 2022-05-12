@@ -1,8 +1,14 @@
+/*
+关注功能， 获取关注列表和获取粉丝列表
+RelationAction， FollowList， FollowerList
+*/
+
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserListResponse struct {

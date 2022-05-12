@@ -1,10 +1,16 @@
+/*
+视频发布功能和获取用户发布视频列表
+publish videos and get all published videos of user
+*/
+
 package controller
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
 )
 
 type VideoListResponse struct {
@@ -33,6 +39,18 @@ func Publish(c *gin.Context) {
 	filename := filepath.Base(data.Filename)
 	user := usersLoginInfo[token]
 	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
+
+	var video = Video{
+		Id:            int64(len(DemoVideos) + 1),
+		Author:        usersLoginInfo[token],
+		PlayUrl:       HostIp + finalName, //构造完整视频链接。 create a whole video url.
+		CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
+		FavoriteCount: 0,
+		CommentCount:  0,
+		IsFavorite:    false,
+	}
+	DemoVideos = append(DemoVideos, video)
+
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
 		c.JSON(http.StatusOK, Response{

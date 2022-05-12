@@ -1,3 +1,8 @@
+/*
+数据文件：包含host ip信息， 所有视频信息
+data: include host ip, all videos information
+*/
+
 package controller
 
 // 原本视频列表是写死的，这里改为根据文件夹内容动态改变
@@ -25,7 +30,7 @@ package controller
 
 // 先获取主机ip， 构造视频文件夹链接
 // First, we need to get the host ip using func GetHostIp in the tool file， to create the video folder url.
-var hostIp string = func() string {
+var HostIp string = func() string {
 	ip := "http://" + GetHostIp() + ":8080/static/"
 	// println(ip + "                     ---------------------------------")
 	return ip
@@ -40,7 +45,7 @@ var DemoVideos = func() []Video {
 		var video = Video{
 			Id:            int64(i + 1),
 			Author:        DemoUser,
-			PlayUrl:       hostIp + videoName[i], //构造完整视频链接。 create a whole video url.
+			PlayUrl:       HostIp + videoName[i], //构造完整视频链接。 create a whole video url.
 			CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
 			FavoriteCount: 0,
 			CommentCount:  0,

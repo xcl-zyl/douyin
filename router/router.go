@@ -1,8 +1,13 @@
+/*
+路由表：api调用接口，绑定接口与对应处理函数，设置视频读取位置为/static下
+router: connect api interface and the target func, make the net path "/static" in the real path "./public"
+*/
+
 package router
 
 import (
-	"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
+	"github.com/xcl-zyl/douyin/controller"
 )
 
 func InitRouter(r *gin.Engine) {

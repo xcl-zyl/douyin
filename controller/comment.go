@@ -1,8 +1,14 @@
+/*
+评论：包含发送评论，获取评论列表
+comment： include send comment, get all comments in the video
+*/
+
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CommentListResponse struct {

@@ -1,25 +1,22 @@
+/*
+登录注册以及获取用户信息
+*/
+
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"sync/atomic"
+
+	"github.com/gin-gonic/gin"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
-}
+// after add db, need to read db
+var usersLoginInfo = map[string]User{}
 
-var userIdSequence = int64(1)
+// var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	Response
@@ -36,23 +33,26 @@ func Register(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
-
-	if _, exist := usersLoginInfo[token]; exist {
+	// token := username + password
+	if exist, _ := GetIsExist(username); exist != 0 {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
 	} else {
-		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
-			Id:   userIdSequence,
-			Name: username,
-		}
-		usersLoginInfo[token] = newUser
+		// atomic.AddInt64(&userIdSequence, 1)
+		// newUser := User{
+		// 	Id:   userIdSequence,
+		// 	Name: username,
+		// }
+		// usersLoginInfo[token] = newUser
+
+		//token 只需要用户名，安全性较低，待优化
+		AddUser(username, password)
+		userId, _ := GetIsExist(username)
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
-			UserId:   userIdSequence,
-			Token:    username + password,
+			UserId:   int64(userId),
+			Token:    username,
 		})
 	}
 }
@@ -61,14 +61,27 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	token := username + password
+	if exist, _ := GetIsExist(username); exist != 0 {
+		if exist, _ := GetIsExist(username, password); exist != 0 {
+			user := User{
+				Id:            int64(exist),
+				Name:          username,
+				FollowCount:   0,
+				FollowerCount: 0,
+				IsFollow:      false,
+			}
+			usersLoginInfo[username] = user
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{StatusCode: 0},
+				UserId:   int64(exist),
+				Token:    username,
+			})
+		} else {
+			c.JSON(http.StatusOK, UserLoginResponse{
+				Response: Response{StatusCode: 1, StatusMsg: "Password is wrong"},
+			})
+		}
 
-	if user, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, UserLoginResponse{
-			Response: Response{StatusCode: 0},
-			UserId:   user.Id,
-			Token:    token,
-		})
 	} else {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
@@ -78,11 +91,10 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
-
-	if user, exist := usersLoginInfo[token]; exist {
+	if _, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
-			User:     user,
+			User:     usersLoginInfo[token],
 		})
 	} else {
 		c.JSON(http.StatusOK, UserResponse{
