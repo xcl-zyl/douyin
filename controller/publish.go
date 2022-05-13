@@ -81,7 +81,7 @@ func PublishList(c *gin.Context) {
 			videosOfUser = append(videosOfUser, value)
 		}
 	}
-	println(len(videosOfUser))
+	// println(len(videosOfUser))
 	// if len(videosOfUser) == 0 {
 	// 	videosOfUser = []Video{}
 	// }
