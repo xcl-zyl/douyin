@@ -42,14 +42,15 @@ func Publish(c *gin.Context) {
 
 	var video = Video{
 		Id:            int64(len(DemoVideos) + 1),
-		Author:        usersLoginInfo[token],
+		Author:        user,
 		PlayUrl:       HostIp + finalName, //构造完整视频链接。 create a whole video url.
 		CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
 		FavoriteCount: 0,
 		CommentCount:  0,
 		IsFavorite:    false,
 	}
-	DemoVideos = append(DemoVideos, video)
+	DemoVideos = append([]Video{video}, DemoVideos...)         //新发布的视频放在开头
+	AddVideo(video.Author.Name, video.PlayUrl, video.CoverUrl) // 将发布视频加入数据库中
 
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
@@ -68,10 +69,26 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
+	token := c.Query("token")
+	// println(token)
+	var videosOfUser = []Video{}
+	// println(len(usersLoginInfo))
+	for _, value := range DemoVideos {
+		if value.Author == usersLoginInfo[token] {
+			// fmt.Println(value.Author.Name)
+			// fmt.Println(usersLoginInfo[token].Name)
+			// fmt.Println(value)
+			videosOfUser = append(videosOfUser, value)
+		}
+	}
+	println(len(videosOfUser))
+	// if len(videosOfUser) == 0 {
+	// 	videosOfUser = []Video{}
+	// }
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: videosOfUser,
 	})
 }

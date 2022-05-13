@@ -49,9 +49,17 @@ func Register(c *gin.Context) {
 		//token 只需要用户名，安全性较低，待优化
 		AddUser(username, password)
 		userId, _ := GetIsExist(username)
+		user := User{
+			Id:            userId,
+			Name:          username,
+			FollowCount:   0,
+			FollowerCount: 0,
+			IsFollow:      false,
+		}
+		usersLoginInfo[username] = user
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 0},
-			UserId:   int64(userId),
+			UserId:   userId,
 			Token:    username,
 		})
 	}
@@ -64,7 +72,7 @@ func Login(c *gin.Context) {
 	if exist, _ := GetIsExist(username); exist != 0 {
 		if exist, _ := GetIsExist(username, password); exist != 0 {
 			user := User{
-				Id:            int64(exist),
+				Id:            exist,
 				Name:          username,
 				FollowCount:   0,
 				FollowerCount: 0,
@@ -73,7 +81,7 @@ func Login(c *gin.Context) {
 			usersLoginInfo[username] = user
 			c.JSON(http.StatusOK, UserLoginResponse{
 				Response: Response{StatusCode: 0},
-				UserId:   int64(exist),
+				UserId:   exist,
 				Token:    username,
 			})
 		} else {

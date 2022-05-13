@@ -38,23 +38,25 @@ var HostIp string = func() string {
 
 // 通过public文件夹，动态生成视频列表
 // create DemoVideos using files in pubilc folder.
-var DemoVideos = func() []Video {
-	var demoVideos = []Video{}
-	videoName := GetAllFile("./public")
-	for i := range videoName {
-		var video = Video{
-			Id:            int64(i + 1),
-			Author:        DemoUser,
-			PlayUrl:       HostIp + videoName[i], //构造完整视频链接。 create a whole video url.
-			CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
-			FavoriteCount: 0,
-			CommentCount:  0,
-			IsFavorite:    false,
-		}
-		demoVideos = append(demoVideos, video)
-	}
-	return demoVideos
-}()
+// var DemoVideos = func() []Video {
+// 	var demoVideos = []Video{}
+// 	videoName := GetAllFile("./public")
+// 	for i := range videoName {
+// 		var video = Video{
+// 			Id:            int64(i + 1),
+// 			Author:        DemoUser,
+// 			PlayUrl:       HostIp + videoName[i], //构造完整视频链接。 create a whole video url.
+// 			CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
+// 			FavoriteCount: 0,
+// 			CommentCount:  0,
+// 			IsFavorite:    false,
+// 		}
+// 		demoVideos = append(demoVideos, video)
+// 	}
+// 	return demoVideos
+// }()
+
+var DemoVideos = GetVideo()
 
 var DemoComments = []Comment{
 	{

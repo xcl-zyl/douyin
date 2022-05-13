@@ -54,8 +54,8 @@ func GetAllFile(path string) []string {
 
 // 查询用户是否存在以及查询密码是否正确
 // judge the user is exist and judge the password is correct
-func GetIsExist(username string, password ...string) (int, string) {
-	userId := 0
+func GetIsExist(username string, password ...string) (int64, string) {
+	userId := int64(0)
 	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
 	if err != nil {
 		fmt.Println("数据库连接失败" + err.Error())
@@ -84,4 +84,57 @@ func AddUser(username, password string) {
 	Sql := fmt.Sprintf("insert into user values (0, '%s', '%s')", username, password)
 	db.Exec(Sql)
 	defer db.Close()
+}
+
+func AddVideo(author, playUrl, coverUrl string) {
+	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s')", author, playUrl, coverUrl)
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+func GetVideo() []Video {
+	var res []Video
+	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return res
+	}
+	rows, _ := db.Query("select * from video")
+	var id int64
+	var author, playUrl, coverUrl string
+	for rows.Next() {
+		rows.Scan(&id, &author, &playUrl, &coverUrl)
+		// fmt.Println(id, author, playUrl, coverUrl)
+		userId, userName := GetIsExist(author)
+
+		var user = User{
+			Id:            userId,
+			Name:          userName,
+			FollowCount:   0,
+			FollowerCount: 0,
+			IsFollow:      false,
+		}
+
+		var video = Video{
+			Id:            id,
+			Author:        user,
+			PlayUrl:       playUrl, //构造完整视频链接。 create a whole video url.
+			CoverUrl:      coverUrl,
+			FavoriteCount: 0,
+			CommentCount:  0,
+			IsFavorite:    false,
+		}
+		res = append([]Video{video}, res...) //视频倒叙存储
+	}
+	defer db.Close()
+	// fmt.Println(len(res), "--------------------------------------------------")
+	// if len(res) >= 30 { //视频长度大于30时，只取前30个
+	// 	res = res[0:30]
+	// }
+	return res
 }

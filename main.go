@@ -28,4 +28,5 @@ func main() {
 	// println(test.GetIsExist("abc", "123456"))
 	// println(test.GetIsExist("abc", "12345"))
 	// println(test.GetIsExist("zhanglei", "douyin"))
+	// test.TestSlice()
 }

@@ -20,9 +20,13 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
+	demoVideos := DemoVideos //获取视频流时检查视频数量
+	if len(demoVideos) >= 30 {
+		demoVideos = demoVideos[0:30]
+	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},
-		VideoList: DemoVideos,
+		VideoList: demoVideos,
 		NextTime:  time.Now().Unix(),
 	})
 }

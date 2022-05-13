@@ -94,3 +94,37 @@ func AddUser(username, password string) {
 	// fmt.Println("受影响的记录数是", n)
 	defer db.Close()
 }
+
+func AddVideo(author, playUrl, coverUrl string) {
+	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s')", author, playUrl, coverUrl)
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+// func GetVideo() []string {
+// 	var res []Video
+// 	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+// 	if err != nil {
+// 		fmt.Println("数据库连接失败")
+// 		return res
+// 	}
+// 	rows, _ := db.Query("select * from video")
+// 	var id int64
+// 	var author, playUrl, coverUrl string
+// 	for rows.Next() {
+// 		rows.Scan(&id, &author, &playUrl, &coverUrl)
+// 		fmt.Println(id, "--", author, playUrl, coverUrl)
+// 	}
+// 	defer db.Close()
+// }
+
+func TestSlice() {
+	s := []int{1, 2, 3}
+	a := s[0:30]
+	println(a)
+}
