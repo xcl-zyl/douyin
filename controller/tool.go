@@ -56,7 +56,7 @@ func GetAllFile(path string) []string {
 // judge the user is exist and judge the password is correct
 func GetIsExist(username string, password ...string) (int64, string) {
 	userId := int64(0)
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open("mysql", "root:123456@(localhost:3306)/douyin")
 	if err != nil {
 		fmt.Println("数据库连接失败" + err.Error())
 		return userId, username
@@ -76,7 +76,7 @@ func GetIsExist(username string, password ...string) (int64, string) {
 // 向数据库插入用户信息
 // insert user in mysql
 func AddUser(username, password string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open("mysql", "root:123456@(localhost:3306)/douyin")
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
@@ -87,7 +87,7 @@ func AddUser(username, password string) {
 }
 
 func AddVideo(author, playUrl, coverUrl string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open("mysql", "root:123456@(localhost:3306)/douyin")
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
@@ -99,17 +99,17 @@ func AddVideo(author, playUrl, coverUrl string) {
 
 func GetVideo() []Video {
 	var res []Video
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open("mysql", "root:123456@(localhost:3306)/douyin")
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return res
 	}
 	rows, _ := db.Query("select * from video")
-	var id int64
+	var id, favoriteCount, commentCount int64
 	var author, playUrl, coverUrl string
 	for rows.Next() {
-		rows.Scan(&id, &author, &playUrl, &coverUrl)
-		// fmt.Println(id, author, playUrl, coverUrl)
+		rows.Scan(&id, &author, &playUrl, &coverUrl, &favoriteCount, &commentCount)
+		//fmt.Println(id, author, playUrl, coverUrl, favoriteCount, commentCount)
 		userId, userName := GetIsExist(author)
 
 		var user = User{
@@ -125,8 +125,8 @@ func GetVideo() []Video {
 			Author:        user,
 			PlayUrl:       playUrl, //构造完整视频链接。 create a whole video url.
 			CoverUrl:      coverUrl,
-			FavoriteCount: 0,
-			CommentCount:  0,
+			FavoriteCount: favoriteCount,
+			CommentCount:  commentCount,
 			IsFavorite:    false,
 		}
 		res = append([]Video{video}, res...) //视频倒叙存储
@@ -138,3 +138,7 @@ func GetVideo() []Video {
 	// }
 	return res
 }
+
+// func GetFavoriteVideo(username string) []Video {
+	
+// }
