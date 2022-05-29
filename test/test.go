@@ -15,6 +15,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const dbName string = "mysql"
+const dbConnect string = "xcl:xcl201314@(localhost:3306)/douyin"
+
 func Test() string {
 	conn, err := net.Dial("udp", "baidu.com:80")
 	if err != nil {
@@ -45,7 +48,7 @@ func GetAllFile(pathname string) []string {
 
 func GetIsExist(username string, password ...string) (int, string) {
 	userId := 0
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return userId, username
@@ -68,7 +71,7 @@ func GetIsExist(username string, password ...string) (int, string) {
 }
 
 func GetUser(username string) (int, string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return 0, ""
@@ -82,7 +85,7 @@ func GetUser(username string) (int, string) {
 }
 
 func AddUser(username, password string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
@@ -96,7 +99,7 @@ func AddUser(username, password string) {
 }
 
 func AddVideo(author, playUrl, coverUrl string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
@@ -108,7 +111,7 @@ func AddVideo(author, playUrl, coverUrl string) {
 
 // func GetVideo() []string {
 // 	var res []Video
-// 	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+// 	db, err := sql.Open(dbName, dbConnect)
 // 	if err != nil {
 // 		fmt.Println("数据库连接失败")
 // 		return res
@@ -127,4 +130,55 @@ func TestSlice() {
 	s := []int{1, 2, 3}
 	a := s[0:30]
 	println(a)
+}
+
+func FavoriteTableChange(tableName string, userName string, action bool) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("create table if not exists %s (%s varchar(32))", tableName, "userName")
+	db.Exec(Sql)
+	if action {
+		Sql = fmt.Sprintf("insert into %s values('%s')", tableName, userName)
+	} else {
+		Sql = fmt.Sprintf("delete from %s where userName='%s'", tableName, userName)
+	}
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+func ChangeVideoFavorite(tableName string, rowName string, videoId int64, change string) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("update %s set %s=%s%s1 where videoId=%d", tableName, rowName, rowName, change, videoId)
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+//通过视频ip查找视频喜爱列表
+func GetVideoFavorite(videoId int64) []string {
+	var res = []string{}
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return res
+	}
+	Sql := fmt.Sprintf("select * from favorite_%d", videoId)
+	rows, err := db.Query(Sql)
+	if err == nil {
+		for rows.Next() {
+			var temp string
+			rows.Scan(&temp)
+			println(temp)
+			res = append(res, temp)
+		}
+	}
+	defer db.Close()
+	// println(res)
+	return res
 }

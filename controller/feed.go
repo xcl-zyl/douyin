@@ -20,9 +20,15 @@ type FeedResponse struct {
 
 // Feed same demo video list for every request
 func Feed(c *gin.Context) {
+	token := c.Query("token")
 	demoVideos := DemoVideos //获取视频流时检查视频数量
 	if len(demoVideos) >= 30 {
 		demoVideos = demoVideos[0:30]
+	}
+	if token == "" {
+		for i := range demoVideos {
+			demoVideos[i].IsFavorite = false
+		}
 	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  Response{StatusCode: 0},

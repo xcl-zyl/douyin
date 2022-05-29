@@ -15,6 +15,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const dbName string = "mysql"
+const dbConnect string = "xcl:xcl201314@(localhost:3306)/douyin"
+
 // 用于获取主机外网ip
 // this func to get host net ip
 func GetHostIp() string {
@@ -56,7 +59,7 @@ func GetAllFile(path string) []string {
 // judge the user is exist and judge the password is correct
 func GetIsExist(username string, password ...string) (int64, string) {
 	userId := int64(0)
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败" + err.Error())
 		return userId, username
@@ -76,7 +79,7 @@ func GetIsExist(username string, password ...string) (int64, string) {
 // 向数据库插入用户信息
 // insert user in mysql
 func AddUser(username, password string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
@@ -86,15 +89,15 @@ func AddUser(username, password string) {
 	defer db.Close()
 }
 
-// 插入视频信息
+// 插入视频信息，插入视频时默认未点赞，评论数点赞数为0
 // insert video inf
 func AddVideo(author, playUrl, coverUrl string) {
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return
 	}
-	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s')", author, playUrl, coverUrl)
+	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s', '%d', '%d', '%d')", author, playUrl, coverUrl, 0, 0, 0)
 	db.Exec(Sql)
 	defer db.Close()
 }
@@ -103,16 +106,17 @@ func AddVideo(author, playUrl, coverUrl string) {
 // get video inf
 func GetVideo() []Video {
 	var res []Video
-	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
+	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
 		return res
 	}
 	rows, _ := db.Query("select * from video")
-	var id int64
+	var isFavorite bool
+	var id, favoriteCount, commentCount int64
 	var author, playUrl, coverUrl string
 	for rows.Next() {
-		rows.Scan(&id, &author, &playUrl, &coverUrl)
+		rows.Scan(&id, &author, &playUrl, &coverUrl, &favoriteCount, &commentCount, &isFavorite)
 		// fmt.Println(id, author, playUrl, coverUrl)
 		userId, userName := GetIsExist(author)
 
@@ -129,8 +133,8 @@ func GetVideo() []Video {
 			Author:        user,
 			PlayUrl:       playUrl, //构造完整视频链接。 create a whole video url.
 			CoverUrl:      coverUrl,
-			FavoriteCount: 0,
-			CommentCount:  0,
+			FavoriteCount: favoriteCount,
+			CommentCount:  commentCount,
 			IsFavorite:    false,
 		}
 		res = append([]Video{video}, res...) //视频倒叙存储
@@ -141,4 +145,128 @@ func GetVideo() []Video {
 	// 	res = res[0:30]
 	// }
 	return res
+}
+
+//检测数据库中目标表是否存在，不存在则新建表， 存在则直接插入数据
+func FavoriteTableChange(tableName string, userName string, action bool) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("create table if not exists %s (%s varchar(32))", tableName, "userName")
+	db.Exec(Sql)
+	if action {
+		Sql = fmt.Sprintf("insert into %s values('%s')", tableName, userName)
+	} else {
+		Sql = fmt.Sprintf("delete from %s where userName='%s'", tableName, userName)
+	}
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+//通过视频ip查找视频喜爱列表
+func GetVideoFavorite(videoId int64) []string {
+	var res = []string{}
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return res
+	}
+	Sql := fmt.Sprintf("select * from favorite_%d", videoId)
+	rows, err := db.Query(Sql)
+	if err == nil {
+		for rows.Next() {
+			var temp string
+			rows.Scan(&temp)
+			// println(temp)
+			res = append(res, temp)
+		}
+	}
+	defer db.Close()
+	// println(res)
+	return res
+}
+
+//修改视频的喜爱数
+func ChangeVideoFavorite(tableName string, rowName string, videoId int64, change string) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("update %s set %s=%s%s1 where videoId=%d", tableName, rowName, rowName, change, videoId)
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+// 判断字符串是否在数组中
+func StrINArr(str string, arr []string) bool {
+	for _, i := range arr {
+		if i == str {
+			return true
+		}
+	}
+	return false
+}
+
+// 获取评论信息
+func GetComments(videoId int64) []Comment {
+	var comments = []Comment{}
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return comments
+	}
+	Sql := `create table if not exists comments ( 
+		commentId int unsigned NOT NULL AUTO_INCREMENT, 
+		videoId int, author varchar(32), content varchar(255), 
+		createDate varchar(20), PRIMARY KEY (commentId))`
+	db.Exec(Sql)
+	Sql = fmt.Sprintf("select * from comments where videoId='%d'", videoId)
+	rows, err := db.Query(Sql)
+	var commentId int64
+	var author, content, createDate string
+	if err == nil {
+		for rows.Next() {
+			rows.Scan(&commentId, &videoId, &author, &content, &createDate)
+			userId, userName := GetIsExist(author)
+			var user = User{
+				Id:            userId,
+				Name:          userName,
+				FollowCount:   0,
+				FollowerCount: 0,
+				IsFollow:      false,
+			}
+
+			var comment = Comment{
+				Id:         commentId,
+				User:       user,
+				Content:    content,
+				CreateDate: createDate,
+			}
+			comments = append(comments, comment)
+		}
+	}
+	defer db.Close()
+	return comments
+}
+
+// 修改评论信息
+func ChangeComment(commentId int64, videoId int64, author string, content string, createDate string, change bool) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	// Sql := "create table if not exists comments (commentId int unsigned NOT NULL AUTO_INCREMENT, videoId int, author varchar(32), content varchar(255), createDate varchar(20))"
+	// db.Exec(Sql)
+	var Sql string
+	if change {
+		Sql = fmt.Sprintf("insert into comments values (0, %d, '%s', '%s', '%s')", videoId, author, content, createDate)
+	} else {
+		Sql = fmt.Sprintf("delete from comments where videoId=%d and author='%s' and commentId='%d'", videoId, author, commentId)
+	}
+	db.Exec(Sql)
+	defer db.Close()
 }

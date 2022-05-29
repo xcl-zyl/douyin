@@ -22,6 +22,26 @@ func main() {
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
+	// controller.GetComments(7)
+	// controller.AddComment(7, "aab", "aaa", "05-01")
+	// for _, i := range controller.GetComments(7) {
+	// 	fmt.Println(i)
+	// }
+	// controller.ChangeComment(7, "aab", "aaa", "05-01", false)
+	// for _, i := range controller.GetComments(7) {
+	// 	fmt.Println(i)
+	// }
+	// controller.ChangeComment(0, 7, "aaa", "bbb", "05-01", true)
+	// for _, i := range controller.GetComments(7) {
+	// 	fmt.Println(i)
+	// }
+	// controller.ChangeComment(1, 7, "aaa", "bbb", "05-01", false)
+	// for _, i := range controller.GetComments(7) {
+	// 	fmt.Println(i)
+	// }
+	// test.GetVideoFavorite(5)
+	// test.TableIsExist("bbb", 3)
+	// test.FavoriteTableChange("aaa", "bbb", false)
 	//test.AddUser("abc", "123")
 	// println(test.GetIsExist("abc"))
 	// println(test.GetIsExist("ab"))

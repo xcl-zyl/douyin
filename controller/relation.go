@@ -29,20 +29,22 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
+	token := c.Query("token")
 	c.JSON(http.StatusOK, UserListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		UserList: []User{DemoUser},
+		UserList: []User{usersLoginInfo[token]},
 	})
 }
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
+	token := c.Query("token")
 	c.JSON(http.StatusOK, UserListResponse{
 		Response: Response{
 			StatusCode: 0,
 		},
-		UserList: []User{DemoUser},
+		UserList: []User{usersLoginInfo[token]},
 	})
 }

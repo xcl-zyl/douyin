@@ -56,21 +56,37 @@ var HostIp string = func() string {
 // 	return demoVideos
 // }()
 
+// 初始化视频信息
 var DemoVideos = GetVideo()
 
-var DemoComments = []Comment{
-	{
-		Id:         1,
-		User:       DemoUser,
-		Content:    "Test Comment",
-		CreateDate: "05-01",
-	},
-}
+// var DemoUser User
 
-var DemoUser = User{
-	Id:            1,
-	Name:          "test",
-	FollowCount:   0,
-	FollowerCount: 0,
-	IsFollow:      false,
-}
+// //初始化评论信息
+// var DemoComments = []Comment{
+// 	{
+// 		Id:         1,
+// 		User:       DemoUser,
+// 		Content:    "Test",
+// 		CreateDate: "05-01",
+// 	},
+// 	{
+// 		Id:         2,
+// 		User:       DemoUser,
+// 		Content:    "Test",
+// 		CreateDate: "05-01",
+// 	},
+// 	{
+// 		Id:         3,
+// 		User:       DemoUser,
+// 		Content:    "Test",
+// 		CreateDate: "05-01",
+// 	},
+// }
+
+// var DemoUser = User{
+// 	Id:            1,
+// 	Name:          "test",
+// 	FollowCount:   0,
+// 	FollowerCount: 0,
+// 	IsFollow:      false,
+// }

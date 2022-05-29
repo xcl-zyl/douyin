@@ -71,12 +71,25 @@ func Login(c *gin.Context) {
 
 	if exist, _ := GetIsExist(username); exist != 0 {
 		if exist, _ := GetIsExist(username, password); exist != 0 {
+			favorite_count := 0
+			total_favorited := 0
+			for i, value := range DemoVideos {
+				if StrINArr(username, GetVideoFavorite(value.Id)) {
+					DemoVideos[i].IsFavorite = true
+					favorite_count++
+				}
+				if username == value.Author.Name {
+					total_favorited += int(value.FavoriteCount)
+				}
+			}
 			user := User{
-				Id:            exist,
-				Name:          username,
-				FollowCount:   0,
-				FollowerCount: 0,
-				IsFollow:      false,
+				Id:              exist,
+				Name:            username,
+				FollowCount:     0,
+				FollowerCount:   0,
+				Favorite_count:  int64(favorite_count),
+				Total_favorited: int64(total_favorited),
+				IsFollow:        false,
 			}
 			usersLoginInfo[username] = user
 			c.JSON(http.StatusOK, UserLoginResponse{
@@ -99,10 +112,19 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
+	total_favorited := 0
+	for _, value := range DemoVideos {
+		if usersLoginInfo[token].Name == value.Author.Name {
+			total_favorited += int(value.FavoriteCount)
+		}
+	}
+	user := usersLoginInfo[token]
+	user.Total_favorited = int64(total_favorited)
+	// usersLoginInfo[token].Total_favorited = int64(total_favorited)
 	if _, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
-			User:     usersLoginInfo[token],
+			User:     user,
 		})
 	} else {
 		c.JSON(http.StatusOK, UserResponse{

@@ -74,7 +74,7 @@ func PublishList(c *gin.Context) {
 	var videosOfUser = []Video{}
 	// println(len(usersLoginInfo))
 	for _, value := range DemoVideos {
-		if value.Author == usersLoginInfo[token] {
+		if value.Author.Name == usersLoginInfo[token].Name {
 			// fmt.Println(value.Author.Name)
 			// fmt.Println(usersLoginInfo[token].Name)
 			// fmt.Println(value)
