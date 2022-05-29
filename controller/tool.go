@@ -86,6 +86,8 @@ func AddUser(username, password string) {
 	defer db.Close()
 }
 
+// 插入视频信息
+// insert video inf
 func AddVideo(author, playUrl, coverUrl string) {
 	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
 	if err != nil {
@@ -97,6 +99,8 @@ func AddVideo(author, playUrl, coverUrl string) {
 	defer db.Close()
 }
 
+// 获取视频信息
+// get video inf
 func GetVideo() []Video {
 	var res []Video
 	db, err := sql.Open("mysql", "xcl:xcl201314@(localhost:3306)/douyin")
