@@ -49,8 +49,21 @@ func Publish(c *gin.Context) {
 		CommentCount:  0,
 		IsFavorite:    false,
 	}
-	DemoVideos = append([]Video{video}, DemoVideos...)         //新发布的视频放在开头
+	DemoVideos = append([]Video{video}, DemoVideos...)         // 新发布的视频放在开头
 	AddVideo(video.Author.Name, video.PlayUrl, video.CoverUrl) // 将发布视频加入数据库中
+	ChangeUserFavorite("user", "work_count", token, "+")       // 发布成功，用户作品数加一，写入数据库
+	DemoVideos = GetVideo()
+	for i, value := range DemoVideos {
+		if token != "" && StrINArr(usersLoginInfo[token].Name, GetVideoFavorite(value.Id)) {
+			DemoVideos[i].IsFavorite = true
+		}
+		for _, j := range GetUserFollowAndFollower(usersLoginInfo[token].Name, "follow") {
+			if j.Name == value.Author.Name {
+				DemoVideos[i].Author.IsFollow = true
+				break
+			}
+		}
+	}
 
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {

@@ -34,7 +34,7 @@ func Register(c *gin.Context) {
 	password := c.Query("password")
 
 	// token := username + password
-	if exist, _, _, _, _, _ := GetIsExist(username); exist != 0 {
+	if exist, _, _, _, _, _, _ := GetIsExist(username); exist != 0 {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
@@ -48,13 +48,16 @@ func Register(c *gin.Context) {
 
 		//token 只需要用户名，安全性较低，待优化
 		AddUser(username, password)
-		userId, _, _, _, _, _ := GetIsExist(username)
+		userId, _, _, _, _, _, _ := GetIsExist(username)
 		user := User{
-			Id:            userId,
-			Name:          username,
-			FollowCount:   0,
-			FollowerCount: 0,
-			IsFollow:      false,
+			Id:              userId,
+			Name:            username,
+			FollowCount:     0,
+			FollowerCount:   0,
+			WorkCount:       0,
+			Favorite_count:  0,
+			Total_favorited: 0,
+			IsFollow:        false,
 		}
 		usersLoginInfo[username] = user
 		c.JSON(http.StatusOK, UserLoginResponse{
@@ -69,8 +72,8 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	if exist, _, _, _, _, _ := GetIsExist(username); exist != 0 {
-		if exist, _, followCount, followerCount, favorite_count, total_favorited := GetIsExist(username, password); exist != 0 {
+	if exist, _, _, _, _, _, _ := GetIsExist(username); exist != 0 {
+		if exist, _, followCount, followerCount, work_count, favorite_count, total_favorited := GetIsExist(username, password); exist != 0 {
 			// favorite_count := 0
 			// total_favorited := 0
 			for i, value := range DemoVideos {
@@ -94,6 +97,7 @@ func Login(c *gin.Context) {
 				Name:            username,
 				FollowCount:     followCount,
 				FollowerCount:   followerCount,
+				WorkCount:       work_count,
 				Favorite_count:  int64(favorite_count),
 				Total_favorited: int64(total_favorited),
 				IsFollow:        false,
@@ -119,19 +123,20 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
-	total_favorited := 0
-	for _, value := range DemoVideos {
-		if usersLoginInfo[token].Name == value.Author.Name {
-			total_favorited += int(value.FavoriteCount)
-		}
-	}
-	user := usersLoginInfo[token]
-	user.Total_favorited = int64(total_favorited)
+	// 注释部分目的是为了实现即时更改总获赞数，但是无效，因为/user只在登录时调用过一次，后面没有调用过
+	// total_favorited := 0
+	// for _, value := range DemoVideos {
+	// 	if usersLoginInfo[token].Name == value.Author.Name {
+	// 		total_favorited += int(value.FavoriteCount)
+	// 	}
+	// }
+	// user := usersLoginInfo[token]
+	// user.Total_favorited = int64(total_favorited)
 	// usersLoginInfo[token].Total_favorited = int64(total_favorited)
 	if _, exist := usersLoginInfo[token]; exist {
 		c.JSON(http.StatusOK, UserResponse{
 			Response: Response{StatusCode: 0},
-			User:     user,
+			User:     usersLoginInfo[token],
 		})
 	} else {
 		c.JSON(http.StatusOK, UserResponse{

@@ -58,25 +58,25 @@ func GetAllFile(path string) []string {
 // 查询用户是否存在以及查询密码是否正确
 // judge the user is exist and judge the password is correct
 // 补充数据库添加新的内容
-func GetIsExist(username string, password ...string) (int64, string, int64, int64, int64, int64) {
-	var userId, followCount, followerCount, favorite_count, total_favorited int64
+func GetIsExist(username string, password ...string) (int64, string, int64, int64, int64, int64, int64) {
+	var userId, followCount, followerCount, work_count, favorite_count, total_favorited int64
 	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败" + err.Error())
-		return userId, username, followCount, followerCount, favorite_count, total_favorited
+		return userId, username, followCount, followerCount, work_count, favorite_count, total_favorited
 	}
 
 	if len(password) != 0 { // select 查了多少元素 scan 就必须读多少元素， 个数必须统一
 		Sql := fmt.Sprintf("select * from user where userName = '%s' and password = '%s'", username, password[0])
-		db.QueryRow(Sql).Scan(&userId, &username, &password[0], &followCount, &followerCount, &favorite_count, &total_favorited)
+		db.QueryRow(Sql).Scan(&userId, &username, &password[0], &followCount, &followerCount, &work_count, &favorite_count, &total_favorited)
 		// fmt.Println(userId, username, password, followCount, followerCount)
 	} else {
 		var pass string
 		Sql := fmt.Sprintf("select * from user where userName = '%s'", username)
-		db.QueryRow(Sql).Scan(&userId, &username, &pass, &followCount, &followerCount, &favorite_count, &total_favorited)
+		db.QueryRow(Sql).Scan(&userId, &username, &pass, &followCount, &followerCount, &work_count, &favorite_count, &total_favorited)
 	}
 	defer db.Close()
-	return userId, username, followCount, followerCount, favorite_count, total_favorited
+	return userId, username, followCount, followerCount, work_count, favorite_count, total_favorited
 }
 
 // 通过id查用户名
@@ -101,7 +101,7 @@ func AddUser(username, password string) {
 		fmt.Println("数据库连接失败")
 		return
 	}
-	Sql := fmt.Sprintf("insert into user values (0, '%s', '%s', 0, 0, 0, 0)", username, password)
+	Sql := fmt.Sprintf("insert into user values (0, '%s', '%s', 0, 0, 0, 0, 0)", username, password)
 	db.Exec(Sql)
 	defer db.Close()
 }
@@ -114,7 +114,7 @@ func AddVideo(author, playUrl, coverUrl string) {
 		fmt.Println("数据库连接失败")
 		return
 	}
-	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s', '%d', '%d', '%d')", author, playUrl, coverUrl, 0, 0, 0)
+	Sql := fmt.Sprintf("insert into video values (0, '%s', '%s', '%s', %d, %d)", author, playUrl, coverUrl, 0, 0)
 	db.Exec(Sql)
 	defer db.Close()
 }
@@ -147,13 +147,14 @@ func GetVideo() []Video {
 	for rows.Next() {
 		rows.Scan(&id, &author, &playUrl, &coverUrl, &favoriteCount, &commentCount)
 		// fmt.Println(id, author, playUrl, coverUrl)
-		userId, userName, followCount, followerCount, favorite_count, total_favorited := GetIsExist(author)
+		userId, userName, followCount, followerCount, work_count, favorite_count, total_favorited := GetIsExist(author)
 
 		var user = User{
 			Id:              userId,
 			Name:            userName,
 			FollowCount:     followCount,
 			FollowerCount:   followerCount,
+			WorkCount:       work_count,
 			Favorite_count:  favorite_count,
 			Total_favorited: total_favorited,
 			IsFollow:        false,
@@ -273,12 +274,13 @@ func GetComments(videoId int64) []Comment {
 	if err == nil {
 		for rows.Next() {
 			rows.Scan(&commentId, &videoId, &author, &content, &createDate)
-			userId, userName, followCount, follower_count, favorite_count, total_favorited := GetIsExist(author)
+			userId, userName, followCount, follower_count, work_count, favorite_count, total_favorited := GetIsExist(author)
 			var user = User{
 				Id:              userId,
 				Name:            userName,
 				FollowCount:     followCount,
 				FollowerCount:   follower_count,
+				WorkCount:       work_count,
 				Favorite_count:  favorite_count,
 				Total_favorited: total_favorited,
 				IsFollow:        false,
@@ -387,12 +389,13 @@ func GetUserFollowAndFollower(userName string, object string) []User {
 		for rows.Next() {
 			rows.Scan(&objectName)
 
-			userId, userName, followCount, follower_count, favorite_count, total_favorited := GetIsExist(objectName)
+			userId, userName, followCount, follower_count, work_count, favorite_count, total_favorited := GetIsExist(objectName)
 			var user = User{
 				Id:              userId,
 				Name:            userName,
 				FollowCount:     followCount,
 				FollowerCount:   follower_count,
+				WorkCount:       work_count,
 				Favorite_count:  favorite_count,
 				Total_favorited: total_favorited,
 				IsFollow:        isFollow,
