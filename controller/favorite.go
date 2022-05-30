@@ -25,6 +25,14 @@ func FavoriteAction(c *gin.Context) {
 		video_id_int64, _ := strconv.ParseInt(video_id, 10, 64)
 		if action_type == "1" {
 			println("点赞")
+			// 如果点赞已经点过，则跳过
+			for _, value := range GetVideoFavorite(video_id_int64) {
+				if value == usersLoginInfo[token].Name {
+					c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User can't repeat operation"})
+					return
+				}
+			}
+
 			FavoriteTableChange("Favorite_"+video_id, token, true)
 			ChangeVideoFavorite("video", "favoriteCount", video_id_int64, "+")
 			ChangeUserFavorite("user", "favorite_count", token, "+")

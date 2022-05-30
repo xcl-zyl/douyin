@@ -31,6 +31,14 @@ func RelationAction(c *gin.Context) {
 		}
 		if action_type == "1" {
 			println("关注")
+			// 如果关注对象已经关注，则跳过
+			for _, j := range GetUserFollowAndFollower(usersLoginInfo[token].Name, "follow") {
+				if GetUserName(to_user_id_int64) == j.Name {
+					c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User can't repeat operation"})
+					return
+				}
+			}
+
 			ChangeFollowAndFollower(token, to_user_id_int64, true)
 			ChangeUserFollowAndFollowerNum(token, to_user_id_int64, "+")
 		} else {
