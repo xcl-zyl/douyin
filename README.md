@@ -22,7 +22,7 @@
 - 也可以在资源管理器中右键文件，点击在集成终端中打开，如下图
 ![5.jpg](5.png)
 14. `git log --pretty=oneline` 查看精简的日志
-15. 
+15. `git push origin :分支名` 同步删除远程分支，注意:后无空格 
 
 附上git学习网站：
 1. [菜鸟教程](https://www.runoob.com/git/git-tutorial.html)
