@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"os"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -406,4 +407,15 @@ func GetUserFollowAndFollower(userName string, object string) []User {
 
 	defer db.Close()
 	return objects
+}
+
+// 判断文件夹是否存在并新建
+func PathExistsAndCreate(path string) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return
+	}
+	if os.IsNotExist(err) {
+		os.Mkdir(path, os.ModePerm)
+	}
 }

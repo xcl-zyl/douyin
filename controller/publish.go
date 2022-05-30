@@ -65,6 +65,7 @@ func Publish(c *gin.Context) {
 		}
 	}
 
+	PathExistsAndCreate("public")
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
 		c.JSON(http.StatusOK, Response{
