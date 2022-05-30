@@ -34,7 +34,7 @@ func Register(c *gin.Context) {
 	password := c.Query("password")
 
 	// token := username + password
-	if exist, _ := GetIsExist(username); exist != 0 {
+	if exist, _, _, _, _, _ := GetIsExist(username); exist != 0 {
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: Response{StatusCode: 1, StatusMsg: "User already exist"},
 		})
@@ -48,7 +48,7 @@ func Register(c *gin.Context) {
 
 		//token 只需要用户名，安全性较低，待优化
 		AddUser(username, password)
-		userId, _ := GetIsExist(username)
+		userId, _, _, _, _, _ := GetIsExist(username)
 		user := User{
 			Id:            userId,
 			Name:          username,
@@ -69,24 +69,31 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
-	if exist, _ := GetIsExist(username); exist != 0 {
-		if exist, _ := GetIsExist(username, password); exist != 0 {
-			favorite_count := 0
-			total_favorited := 0
+	if exist, _, _, _, _, _ := GetIsExist(username); exist != 0 {
+		if exist, _, followCount, followerCount, favorite_count, total_favorited := GetIsExist(username, password); exist != 0 {
+			// favorite_count := 0
+			// total_favorited := 0
 			for i, value := range DemoVideos {
 				if StrINArr(username, GetVideoFavorite(value.Id)) {
 					DemoVideos[i].IsFavorite = true
-					favorite_count++
+					// favorite_count++
 				}
-				if username == value.Author.Name {
-					total_favorited += int(value.FavoriteCount)
+				// if username == value.Author.Name {
+				// 	total_favorited += int(value.FavoriteCount)
+				// 	// DemoVideos[i].Author.IsFollow = true
+				// }
+				for _, j := range GetUserFollowAndFollower(username, "follow") {
+					if j.Name == value.Author.Name {
+						DemoVideos[i].Author.IsFollow = true
+						break
+					}
 				}
 			}
 			user := User{
 				Id:              exist,
 				Name:            username,
-				FollowCount:     0,
-				FollowerCount:   0,
+				FollowCount:     followCount,
+				FollowerCount:   followerCount,
 				Favorite_count:  int64(favorite_count),
 				Total_favorited: int64(total_favorited),
 				IsFollow:        false,

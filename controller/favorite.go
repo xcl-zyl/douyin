@@ -27,15 +27,25 @@ func FavoriteAction(c *gin.Context) {
 			println("点赞")
 			FavoriteTableChange("Favorite_"+video_id, token, true)
 			ChangeVideoFavorite("video", "favoriteCount", video_id_int64, "+")
+			ChangeUserFavorite("user", "favorite_count", token, "+")
+			ChangeUserFavorite("user", "total_favorited", GetVideoAuthor(video_id_int64), "+")
 		} else {
 			println("取消")
 			FavoriteTableChange("Favorite_"+video_id, token, false)
 			ChangeVideoFavorite("video", "favoriteCount", video_id_int64, "-")
+			ChangeUserFavorite("user", "favorite_count", token, "-")
+			ChangeUserFavorite("user", "total_favorited", GetVideoAuthor(video_id_int64), "-")
 		}
 		DemoVideos = GetVideo()
 		for i, value := range DemoVideos {
 			if token != "" && StrINArr(usersLoginInfo[token].Name, GetVideoFavorite(value.Id)) {
 				DemoVideos[i].IsFavorite = true
+			}
+			for _, j := range GetUserFollowAndFollower(usersLoginInfo[token].Name, "follow") {
+				if j.Name == value.Author.Name {
+					DemoVideos[i].Author.IsFollow = true
+					break
+				}
 			}
 			// if usersLoginInfo[token].Name == value.Author.Name {
 			// 	total_favorited += int(value.FavoriteCount)

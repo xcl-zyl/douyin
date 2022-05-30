@@ -28,6 +28,7 @@ func Feed(c *gin.Context) {
 	if token == "" {
 		for i := range demoVideos {
 			demoVideos[i].IsFavorite = false
+			demoVideos[i].Author.IsFollow = false
 		}
 	}
 	c.JSON(http.StatusOK, FeedResponse{

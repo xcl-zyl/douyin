@@ -57,23 +57,40 @@ func GetAllFile(path string) []string {
 
 // 查询用户是否存在以及查询密码是否正确
 // judge the user is exist and judge the password is correct
-func GetIsExist(username string, password ...string) (int64, string) {
-	userId := int64(0)
+// 补充数据库添加新的内容
+func GetIsExist(username string, password ...string) (int64, string, int64, int64, int64, int64) {
+	var userId, followCount, followerCount, favorite_count, total_favorited int64
 	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败" + err.Error())
-		return userId, username
+		return userId, username, followCount, followerCount, favorite_count, total_favorited
 	}
 
 	if len(password) != 0 { // select 查了多少元素 scan 就必须读多少元素， 个数必须统一
-		Sql := fmt.Sprintf("select userId, userName, password from user where userName = '%s' and password = '%s'", username, password[0])
-		db.QueryRow(Sql).Scan(&userId, &username, &password)
+		Sql := fmt.Sprintf("select * from user where userName = '%s' and password = '%s'", username, password[0])
+		db.QueryRow(Sql).Scan(&userId, &username, &password[0], &followCount, &followerCount, &favorite_count, &total_favorited)
+		// fmt.Println(userId, username, password, followCount, followerCount)
 	} else {
-		Sql := fmt.Sprintf("select userId, userName from user where userName = '%s'", username)
-		db.QueryRow(Sql).Scan(&userId, &username)
+		var pass string
+		Sql := fmt.Sprintf("select * from user where userName = '%s'", username)
+		db.QueryRow(Sql).Scan(&userId, &username, &pass, &followCount, &followerCount, &favorite_count, &total_favorited)
 	}
 	defer db.Close()
-	return userId, username
+	return userId, username, followCount, followerCount, favorite_count, total_favorited
+}
+
+// 通过id查用户名
+func GetUserName(userId int64) string {
+	var userName string
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败" + err.Error())
+		return userName
+	}
+	Sql := fmt.Sprintf("select userId, userName from user where userId=%d", userId)
+	db.QueryRow(Sql).Scan(&userId, &userName)
+	defer db.Close()
+	return userName
 }
 
 // 向数据库插入用户信息
@@ -84,7 +101,7 @@ func AddUser(username, password string) {
 		fmt.Println("数据库连接失败")
 		return
 	}
-	Sql := fmt.Sprintf("insert into user values (0, '%s', '%s')", username, password)
+	Sql := fmt.Sprintf("insert into user values (0, '%s', '%s', 0, 0, 0, 0)", username, password)
 	db.Exec(Sql)
 	defer db.Close()
 }
@@ -102,6 +119,19 @@ func AddVideo(author, playUrl, coverUrl string) {
 	defer db.Close()
 }
 
+func GetVideoAuthor(id int64) string {
+	var author string
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return author
+	}
+	Sql := fmt.Sprintf("select videoId, author from video where videoId=%d", id)
+	db.QueryRow(Sql).Scan(&id, &author)
+	defer db.Close()
+	return author
+}
+
 // 获取视频信息
 // get video inf
 func GetVideo() []Video {
@@ -112,20 +142,21 @@ func GetVideo() []Video {
 		return res
 	}
 	rows, _ := db.Query("select * from video")
-	var isFavorite bool
 	var id, favoriteCount, commentCount int64
 	var author, playUrl, coverUrl string
 	for rows.Next() {
-		rows.Scan(&id, &author, &playUrl, &coverUrl, &favoriteCount, &commentCount, &isFavorite)
+		rows.Scan(&id, &author, &playUrl, &coverUrl, &favoriteCount, &commentCount)
 		// fmt.Println(id, author, playUrl, coverUrl)
-		userId, userName := GetIsExist(author)
+		userId, userName, followCount, followerCount, favorite_count, total_favorited := GetIsExist(author)
 
 		var user = User{
-			Id:            userId,
-			Name:          userName,
-			FollowCount:   0,
-			FollowerCount: 0,
-			IsFollow:      false,
+			Id:              userId,
+			Name:            userName,
+			FollowCount:     followCount,
+			FollowerCount:   followerCount,
+			Favorite_count:  favorite_count,
+			Total_favorited: total_favorited,
+			IsFollow:        false,
 		}
 
 		var video = Video{
@@ -188,7 +219,7 @@ func GetVideoFavorite(videoId int64) []string {
 	return res
 }
 
-//修改视频的喜爱数
+// 修改视频的喜爱数
 func ChangeVideoFavorite(tableName string, rowName string, videoId int64, change string) {
 	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
@@ -196,6 +227,18 @@ func ChangeVideoFavorite(tableName string, rowName string, videoId int64, change
 		return
 	}
 	Sql := fmt.Sprintf("update %s set %s=%s%s1 where videoId=%d", tableName, rowName, rowName, change, videoId)
+	db.Exec(Sql)
+	defer db.Close()
+}
+
+// 修改用户喜爱数
+func ChangeUserFavorite(tableName string, rowName string, userName string, change string) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("update %s set %s=%s%s1 where userName='%s'", tableName, rowName, rowName, change, userName)
 	db.Exec(Sql)
 	defer db.Close()
 }
@@ -230,13 +273,15 @@ func GetComments(videoId int64) []Comment {
 	if err == nil {
 		for rows.Next() {
 			rows.Scan(&commentId, &videoId, &author, &content, &createDate)
-			userId, userName := GetIsExist(author)
+			userId, userName, followCount, follower_count, favorite_count, total_favorited := GetIsExist(author)
 			var user = User{
-				Id:            userId,
-				Name:          userName,
-				FollowCount:   0,
-				FollowerCount: 0,
-				IsFollow:      false,
+				Id:              userId,
+				Name:            userName,
+				FollowCount:     followCount,
+				FollowerCount:   follower_count,
+				Favorite_count:  favorite_count,
+				Total_favorited: total_favorited,
+				IsFollow:        false,
 			}
 
 			var comment = Comment{
@@ -253,11 +298,11 @@ func GetComments(videoId int64) []Comment {
 }
 
 // 修改评论信息
-func ChangeComment(commentId int64, videoId int64, author string, content string, createDate string, change bool) {
+func ChangeComment(commentId int64, videoId int64, author string, content string, createDate string, change bool) int64 {
 	db, err := sql.Open(dbName, dbConnect)
 	if err != nil {
 		fmt.Println("数据库连接失败")
-		return
+		return 0
 	}
 	// Sql := "create table if not exists comments (commentId int unsigned NOT NULL AUTO_INCREMENT, videoId int, author varchar(32), content varchar(255), createDate varchar(20))"
 	// db.Exec(Sql)
@@ -267,6 +312,95 @@ func ChangeComment(commentId int64, videoId int64, author string, content string
 	} else {
 		Sql = fmt.Sprintf("delete from comments where videoId=%d and author='%s' and commentId='%d'", videoId, author, commentId)
 	}
+	res, _ := db.Exec(Sql)
+	commentId, _ = res.LastInsertId()
+	defer db.Close()
+	return commentId
+}
+
+// 修改用户粉丝表以及关注表
+func ChangeFollowAndFollower(userName string, to_user_id int64, change bool) {
+	to_user_name := GetUserName(to_user_id)
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("create table if not exists follow_%s (%s varchar(32))", userName, "followName")
+	db.Exec(Sql)
+	Sql = fmt.Sprintf("create table if not exists follower_%s (%s varchar(32))", to_user_name, "followerName")
+	db.Exec(Sql)
+
+	var Sql1, Sql2 string
+	if change {
+		Sql1 = fmt.Sprintf("insert into follow_%s values ('%s')", userName, to_user_name)
+		Sql2 = fmt.Sprintf("insert into follower_%s values ('%s')", to_user_name, userName)
+	} else {
+		Sql1 = fmt.Sprintf("delete from follow_%s where followName='%s'", userName, to_user_name)
+		Sql2 = fmt.Sprintf("delete from follower_%s where followerName='%s'", to_user_name, userName)
+	}
+	db.Exec(Sql1)
+	db.Exec(Sql2)
+
+	defer db.Close()
+}
+
+// 修改用户粉丝数以及关注数
+func ChangeUserFollowAndFollowerNum(userName string, to_user_id int64, change string) {
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return
+	}
+	Sql := fmt.Sprintf("update %s set %s=%s%s1 where userName='%s'", "user", "followCount", "followCount", change, userName)
+	db.Exec(Sql)
+	Sql = fmt.Sprintf("update %s set %s=%s%s1 where userId=%d", "user", "followerCount", "followerCount", change, to_user_id)
 	db.Exec(Sql)
 	defer db.Close()
+}
+
+//读取用户粉丝或者关注者列表
+func GetUserFollowAndFollower(userName string, object string) []User {
+	// user_id, _, _, _ := GetIsExist(userName)
+	var objects = []User{}
+	db, err := sql.Open(dbName, dbConnect)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		return objects
+	}
+	var Sql string
+	var isFollow bool
+	if object == "follow" {
+		Sql = fmt.Sprintf("create table if not exists follow_%s (%s varchar(32))", userName, "followName")
+		db.Exec(Sql)
+		Sql = fmt.Sprintf("select * from follow_%s", userName)
+		isFollow = true
+	} else {
+		Sql = fmt.Sprintf("create table if not exists follower_%s (%s varchar(32))", userName, "followerName")
+		db.Exec(Sql)
+		Sql = fmt.Sprintf("select * from follower_%s", userName)
+		isFollow = false
+	}
+	var objectName string
+	rows, err := db.Query(Sql)
+	if err == nil {
+		for rows.Next() {
+			rows.Scan(&objectName)
+
+			userId, userName, followCount, follower_count, favorite_count, total_favorited := GetIsExist(objectName)
+			var user = User{
+				Id:              userId,
+				Name:            userName,
+				FollowCount:     followCount,
+				FollowerCount:   follower_count,
+				Favorite_count:  favorite_count,
+				Total_favorited: total_favorited,
+				IsFollow:        isFollow,
+			}
+			objects = append(objects, user)
+		}
+	}
+
+	defer db.Close()
+	return objects
 }

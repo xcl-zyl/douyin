@@ -22,6 +22,25 @@ func main() {
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
+	// fmt.Println(controller.GetIsExist("abc"))
+
+	// controller.ChangeFollowAndFollower("abc", 6, true)
+	// controller.ChangeUserFollowAndFollowerNum("abc", 6, "+")
+	// for _, i := range controller.GetUserFollowAndFollower("abc", "follow") {
+	// 	fmt.Println(i)
+	// }
+	// for _, i := range controller.GetUserFollowAndFollower("a", "follower") {
+	// 	fmt.Println(i)
+	// }
+	// controller.ChangeFollowAndFollower("abc", 6, false)
+	// println("---------")
+	// controller.ChangeUserFollowAndFollowerNum("abc", 6, "-")
+	// for _, i := range controller.GetUserFollowAndFollower("abc", "follow") {
+	// 	fmt.Println(i)
+	// }
+	// for _, i := range controller.GetUserFollowAndFollower("a", "follower") {
+	// 	fmt.Println(i)
+	// }
 	// controller.GetComments(7)
 	// controller.AddComment(7, "aab", "aaa", "05-01")
 	// for _, i := range controller.GetComments(7) {
@@ -31,7 +50,7 @@ func main() {
 	// for _, i := range controller.GetComments(7) {
 	// 	fmt.Println(i)
 	// }
-	// controller.ChangeComment(0, 7, "aaa", "bbb", "05-01", true)
+	// print(controller.ChangeComment(0, 7, "aaa", "bbb", "05-01", true))
 	// for _, i := range controller.GetComments(7) {
 	// 	fmt.Println(i)
 	// }
