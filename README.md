@@ -1,15 +1,12 @@
 ### Go学习
 <br>     
 
-#### 学习资料
+#### 参考资料
 1. [Go 语言上手 - 基础语言](https://juejin.cn/post/7093721879462019102)
 2. [Go语言圣经](https://books.studygolang.com/gopl-zh/)
 3. [青训营完整手册](https://bytedance.feishu.cn/docs/doccnFRB1TXYJPK6yprPETHLXgd#q8ZYps)
 4. [抖音项目-青训营](https://bytedance.feishu.cn/docx/doxcnbgkMy2J0Y3E6ihqrvtHXPg)
-5. [Go语言上手PPT](https://bytedance.feishu.cn/file/boxcnQnHXuDOdzd8CqVid7nQLmg)
-6. [课后项目实践作业](https://juejin.cn/post/7094452391101071367/)
-7. [Go语言工程实践PPT](https://bytedance.feishu.cn/file/boxcnRmlw9MjbtAMBnOW44y8dZd?hash=7cfc75acc80372c08463b622df90a4b5)
-8. [高质量与性能调优PPT](https://bytedance.feishu.cn/file/boxcnqqWtT0xgWAIMGWVs7wM6fd?hash=ab6bfba21a54c52073c7341ecb3ab470)
+5. ...
 
 <br>
 
@@ -23,11 +20,11 @@
    - 查看自己基本信息和投稿列表
 
 根据分析，第一步应该设计数据库的表结构：
-   - 首先实现基础功能：
+   - 首先实现基础功能
    - 应包含用户表、视频表
 
 **第一部分已全部完成**   
-*存在问题： 1.只有重启程序才能刷新首页，没有刷新功能（新版apk已解决该问题） 2.封面图没有上传*
+*存在问题： 1.只有重启程序才能刷新首页，没有刷新功能（新版apk已解决该问题） 2.封面图没有上传* 
    
 1. 点赞列表，用户评论
 - 对视频点赞
@@ -45,7 +42,7 @@
   - 在完成这部分功能时，需要在数据库video表中增加内容，同时点赞和评论需要动态增加用户的喜爱视频表和对应视频的评论内容表，    
   - 表名建议为favorite_用户id，comment_视频id
 
-点赞功能已完成：
+**点赞功能已完成：**
 - 包括视频点赞显示正确点赞数，点赞加一，取消赞减一，点赞实时修改数据库
 - 以及用户喜爱列表显示正确的喜爱视频
 - 用户登录时正确显示红心状态
@@ -78,7 +75,7 @@
   需要注意的是初始化视频显示时，需判断“+”即关注符号需不需要显示，和点赞功能类似，读取登录用户的关注列表判断是否应该显示“+”
   - 表名规则同上
 
-**关注功能已完成：**
+**关注以及粉丝功能已完成：**
 - 完成数据表的扩充
 - 登录时个人信息页面显示
 - 关注时即时修改数据表内容
